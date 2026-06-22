@@ -1,0 +1,163 @@
+{% extends "household_base.html" %}
+{% load static %}
+
+{% block title %}Map View{% endblock title %}
+
+{% block content %}
+<div class="container-fluid px-0">
+  <div class="card border-0">
+    <div class="card-header  text-white">
+      <h2 class="mb-0"><i class="fas fa-map-marked-alt me-2"></i>Waste Collection Map</h2>
+    </div>
+    <div class="card-body p-0">
+      <div id="map" style="height: 70vh; width: 100%;"></div>
+    </div>
+    <div class="card-footer bg-light">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="map-legend">
+            <h5><i class="fas fa-legend me-2"></i>Map Legend:</h5>
+            <div class="d-flex align-items-center mb-2">
+              <div class="legend-color" style="background-color: #4e73df;"></div>
+              <span class="ms-2">Regular Collection Points</span>
+            </div>
+            <div class="d-flex align-items-center mb-2">
+              <div class="legend-color" style="background-color: #1cc88a;"></div>
+              <span class="ms-2">Recycling Centers</span>
+            </div>
+            <div class="d-flex align-items-center">
+              <div class="legend-color" style="background-color: #e74a3b;"></div>
+              <span class="ms-2">Reported Illegal Dumping</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 text-end">
+          <button id="locateMe" class="btn btn-outline-primary me-2">
+            <i class="fas fa-location-arrow me-1"></i> Locate Me
+          </button>
+          <button id="reportIssue" class="btn btn-danger">
+            <i class="fas fa-exclamation-triangle me-1"></i> Report Issue
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .map-legend {
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 10px 15px;
+    border-radius: 5px;
+    display: inline-block;
+  }
+  
+  .legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1px solid #ddd;
+  }
+  
+  .leaflet-control-layers {
+    border-radius: 5px !important;
+  }
+</style>
+
+{% endblock content %}
+
+{% block js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  if (document.getElementById("map")) {
+    // Initialize map with Kathmandu coordinates
+    const map = L.map('map').setView([27.7172, 85.3240], 13);
+    
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19
+    }).addTo(map);
+    
+    // Add layer control
+    const baseLayers = {
+      "OpenStreetMap": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19
+      }),
+      "Satellite": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+        maxZoom: 19
+      })
+    };
+    
+    baseLayers["OpenStreetMap"].addTo(map);
+    L.control.layers(baseLayers).addTo(map);
+    
+    // Sample markers (in a real app, these would come from your backend)
+    const regularIcon = L.icon({
+      iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
+      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41]
+    });
+    
+    const recyclingIcon = L.icon({
+      iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
+      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41]
+    });
+    
+    const illegalIcon = L.icon({
+      iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41]
+    });
+    
+    // Add sample markers
+    L.marker([27.7172, 85.3240], {icon: regularIcon})
+      .addTo(map)
+      .bindPopup("<b>Regular Collection Point</b><br>Collection time: 9:00-11:00 AM");
+    
+    L.marker([27.7100, 85.3300], {icon: recyclingIcon})
+      .addTo(map)
+      .bindPopup("<b>Recycling Center</b><br>Open: 8:00 AM - 5:00 PM");
+    
+    L.marker([27.7220, 85.3180], {icon: illegalIcon})
+      .addTo(map)
+      .bindPopup("<b>Illegal Dumping Reported</b><br>Reported on: 2023-05-15");
+    
+    // Locate me button functionality
+    document.getElementById('locateMe').addEventListener('click', () => {
+      map.locate({setView: true, maxZoom: 16});
+    });
+    
+    map.on('locationfound', (e) => {
+      L.marker([e.latlng.lat, e.latlng.lng], {
+        icon: L.icon({
+          iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-gold.png',
+          shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+          iconSize: [25, 41],
+          iconAnchor: [12, 41]
+        })
+      }).addTo(map)
+      .bindPopup("Your Location").openPopup();
+    });
+    
+    // Report issue button functionality
+    document.getElementById('reportIssue').addEventListener('click', () => {
+      window.location.href = "{% url 'illegal_report' %}";
+    });
+  }
+});
+</script>
+{% endblock js %}
