@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Signup</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      height: 100vh;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .form-container {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.2);
+      width: 400px;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+    }
+    .hidden {
+      display: none;
+    }
+    .error {
+      color: red;
+      font-size: 0.9em;
+    }
+    .success {
+      color: green;
+      font-size: 0.9em;
+    }
+    button {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+    .title {
+      font-size: 28px;
+      font-weight: bold;
+      color: #28a745;
+      margin-bottom: 10px;
+      letter-spacing: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <div class="title">FO_MOHOR Registration</div>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="{% if message.tags %}{{ message.tags }}{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <form id="signupForm" action="{% url 'signup' %}" method="POST">
+      {% csrf_token %}
+      
+      <label for="userType">Signup as:</label>
+      <select id="userType" onchange="showFormFields()" name="role" required>
+        <option value="">--Select--</option>
+        <option value="household">Household</option>
+        <option value="organization">Organization</option>
+        <option value="metro">Metro</option>
+      </select>
+
+      <div id="commonFields">
+        <input type="text" id="username" placeholder="Email or Phone Number" name="username" required>
+        <input type="password" id="password" placeholder="Password" name="password" required>
+        <input type="password" id="confirmPassword" placeholder="Confirm Password" name="confirm_password" required>
+      </div>
+
+      <div id="householdFields" class="hidden">
+        <input type="text" name="name" placeholder="Household Name">
+        <input type="text" name="municipal" placeholder="Municipal Name">
+        <input type="text" name="house_no" placeholder="House No">
+        <select name="wardno" >
+          <option value="">--Select Ward--</option>
+          {% for i in wards %}
+            <option value="{{ i }}">{{ i }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div id="receiverFields" class="hidden">
+        <input type="text" name="metro_name" placeholder="Metro Name">
+      </div>
+
+      <div id="organizationFields" class="hidden">
+        <input type="text" name="org_name" placeholder="Organization Name">
+        <label>Municipal Ward No:</label>
+        <select name="ward_no" >
+          <option value="">--Select Ward--</option>
+          {% for i in wards %}
+            <option value="{{ i }}">{{ i }}</option>
+          {% endfor %}
+        </select>
+        <label>Choose Waste Type:</label>
+        <select name="waste_type">
+          <option value="Degradable">Degradable</option>
+          <option value="Non-degradable">Non-degradable</option>
+          <option value="E-waste">E-waste</option>
+        </select>
+      </div>
+
+      <button type="submit">Sign Up</button>
+    </form>
+
+    <p style="text-align:center; margin-top: 10px;">
+      Already have an account? <a href="{% url 'login' %}">Login here</a>
+    </p>
+  </div>
+
+  <script>
+    function showFormFields() {
+      const type = document.getElementById("userType").value;
+      document.getElementById("householdFields").classList.add("hidden");
+      document.getElementById("receiverFields").classList.add("hidden");
+      document.getElementById("organizationFields").classList.add("hidden");
+
+      if (type === "household") {
+        document.getElementById("householdFields").classList.remove("hidden");
+      } else if (type === "metro") {
+        document.getElementById("receiverFields").classList.remove("hidden");
+      } else if (type === "organization") {
+        document.getElementById("organizationFields").classList.remove("hidden");
+      }
+    }
+  </script>
+</body>
+</html>
