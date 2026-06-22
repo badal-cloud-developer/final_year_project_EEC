@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}
+  user_recyclers
+{% endblock title %}
+{% block css %}
+  
+  <style>
+   
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    .ranking-table {
+      width: 100%;
+      margin-bottom: 30px;
+    }
+
+    .ranking-table th, .ranking-table td {
+      text-align: center;
+      padding: 12px;
+      border: 1px solid #ddd;
+    }
+
+    .ranking-table th {
+      background-color: #007bff;
+      color: white;
+      font-weight: bold;
+    }
+
+    .top-rank {
+      background-color: #f1c40f;
+      color: white;
+      font-weight: bold;
+      animation: pulse 2s infinite;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      margin-bottom: 30px;
+    }
+
+    .top-rank img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 15px;
+    }
+
+    .badge-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background-color: #007bff;
+      color: white;
+      text-align: center;
+      line-height: 30px;
+      font-size: 14px;
+    }
+
+    .ranking-image {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-right: 10px;
+    }
+
+    .ranking-filter {
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .filter-button {
+      margin-right: 10px;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.05);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .ranking-table th, .ranking-table td {
+        font-size: 12px;
+        padding: 8px;
+      }
+    }
+  </style>
+  {% endblock css %}
+{% block content %}
+  <body>
+  <div class="container">
+    <h2 class="text-center mb-5">User and Recycler Rankings</h2>
+
+    <!-- Filter Section -->
+    <div class="ranking-filter">
+      <div>
+        <button class="btn btn-primary filter-button" id="household-filter">Households</button>
+        <button class="btn btn-success filter-button" id="organization-filter">Organizations</button>
+      </div>
+    </div>
+
+    <!-- Top Rankers -->
+    <div class="row">
+      <div class="col-md-6">
+        <!-- Top Household Ranker -->
+        <div class="top-rank">
+          <img src="{% static 'image1.png' %}" alt="Top Household Ranker" class="ranking-image">
+          <h3>John Doe (Household)</h3>
+          <p>Points: 1200</p>
+          <p>Badges: Recycling Expert, Green Champion, Eco Warrior</p>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <!-- Top Organization Ranker -->
+        <div class="top-rank">
+          <img src="{% static 'image.png' %}" alt="Top Organization Ranker" class="ranking-image">
+          <h3>XYZ Recycling Company</h3>
+          <p>Points: 1500</p>
+          <p>Badges: Top Recycler, Green Partner, Sustainable Leader</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Household Rankings -->
+    <div id="household-rankings">
+      <h3>Household Rankings</h3>
+      <table class="ranking-table table table-bordered">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Profile</th>
+            <th>Username</th>
+            <th>Points</th>
+            <th>Badges</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>2</td>
+            <td><img src="{% static 'image1.png' %}" alt="User Image" class="ranking-image"></td>
+            <td>Jane Smith</td>
+            <td>1100</td>
+            <td>Green Champion, Eco Warrior</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td><img src="{% static 'image.png' %}" alt="User Image" class="ranking-image"></td>
+            <td>Mark Johnson</td>
+            <td>1050</td>
+            <td>Eco Warrior</td>
+          </tr>
+          <!-- More Household Rankings -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Organization Rankings -->
+    <div id="organization-rankings" style="display:none;">
+      <h3>Organization Rankings</h3>
+      <table class="ranking-table table table-bordered">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Profile</th>
+            <th>Organization</th>
+            <th>Points</th>
+            <th>Badges</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>2</td>
+            <td><img src="{% static 'image1.png' %}" alt="Organization Logo" class="ranking-image"></td>
+            <td>ABC Waste Management</td>
+            <td>1350</td>
+            <td>Green Partner, Sustainable Leader</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td><img src="{% static 'image1.png' %}" alt="Organization Logo" class="ranking-image"></td>
+            <td>DEF Recycling Initiative</td>
+            <td>1300</td>
+            <td>Eco Innovator, Green Partner</td>
+          </tr>
+          <!-- More Organization Rankings -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+  {% endblock content %}
+{% block js %}
+  <script>
+    // Filter functionality
+    document.getElementById('household-filter').addEventListener('click', function () {
+      document.getElementById('household-rankings').style.display = 'block';
+      document.getElementById('organization-rankings').style.display = 'none';
+    });
+
+    document.getElementById('organization-filter').addEventListener('click', function () {
+      document.getElementById('household-rankings').style.display = 'none';
+      document.getElementById('organization-rankings').style.display = 'block';
+    });
+  </script>
+{% endblock js %}
+

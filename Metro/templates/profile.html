@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}
+{% load static %} 
+profile
+{% endblock title %}
+
+{% block css %}
+<style>
+  .center-wrapper {
+    /* min-height: 100vh; */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f3f4f6;
+  }
+
+  .profile-container {
+    background-color: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    max-width: 360px;
+    width: 100%;
+  }
+
+  .profile-header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .profile-header img {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 12px;
+  }
+
+  .profile-header h2 {
+    font-size: 1.6rem;
+    font-weight: bold;
+    margin-bottom: 6px;
+  }
+
+  .profile-header p {
+    font-size: 1rem;
+    color: #6b7280;
+  }
+
+  .profile-details {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .profile-details p {
+    font-size: 1rem;
+    color: #4b5563;
+  }
+
+  .profile-actions {
+    text-align: center;
+  }
+
+  .profile-actions button {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .profile-actions .logout-btn {
+    background-color: #ef4444;
+    color: white;
+  }
+
+  .profile-actions .logout-btn:hover {
+    background-color: #dc2626;
+  }
+</style>
+{% endblock css %}
+
+{% block content %}
+<div class="center-wrapper">
+  <div class="profile-container">
+    <!-- Profile Header with Image -->
+    <div class="profile-header">
+      <img src="{% static 'image.png' %}" alt="Profile Image">
+      <h2><span style="color:aqua">{{request.user}}</span></h2>
+      <p><span style="color:#dc2626">Metro Name: </span> {{request.user.metro.metro_name}}</p>
+    </div>
+
+    <!-- Profile Details -->
+    <div class="profile-details">
+      <p></p>
+      <p><span style="color:blue">Joined: </span>{{request.user.date_joined }}</p>
+      <p><span style="color:blue">Last login: </span>{{request.user.last_login }}</p>
+
+    </div>
+
+    <!-- Profile Actions (Logout Button) -->
+    <div class="profile-actions">
+      <form method="POST" action="{% url 'logout' %}">
+  {% csrf_token %}
+  <button type="submit" class="logout-btn">Logout</button>
+</form>
+    </div>
+  </div>
+</div>
+{% endblock content %}

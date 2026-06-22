@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}
+  Schedule
+{% endblock title %}
+{% block css %}
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      background: #f9fafb;
+    }
+    #map {
+      height: 90vh;
+      width: 100%;
+    }
+    #controls {
+      padding: 15px;
+      background: white;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      background: #10b981;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    #bus-info {
+      font-weight: bold;
+      color: #1e40af;
+    }
+  </style>
+{% endblock css %}
+{% block content %}
+<div id="controls">
+  <button onclick="sendNotification()">📨 Send Notification</button>
+  <span id="bus-info">🚌 Allocated Bus Size: Medium (5 Tons)</span>
+</div>
+
+<div id="map"></div>
+{% endblock content %}
+
+{% block js %}
+<script>
+  const map = L.map('map').setView([27.700769, 85.300140], 13); // Centered on Kathmandu for demo
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  // Sample cluster of households
+  const households = [
+    [27.700769, 85.300140],
+    [27.702500, 85.302500],
+    [27.703000, 85.298000],
+    [27.705000, 85.301000],
+    [27.704000, 85.303500],
+    [27.706500, 85.300500]
+  ];
+
+  // Draw markers
+  households.forEach((loc, i) => {
+    L.marker(loc).addTo(map).bindPopup(`🏠 House ${i + 1}`);
+  });
+
+  // Draw a cluster circle
+  const clusterCircle = L.circle([27.7035, 85.3015], {
+    color: '#34d399',
+    fillColor: '#6ee7b7',
+    fillOpacity: 0.3,
+    radius: 500
+  }).addTo(map).bindPopup('📊 High Waste Production Cluster');
+
+  // Draw polyline (shortest path mock)
+  const route = L.polyline(households, {
+    color: 'blue',
+    weight: 4,
+    opacity: 0.7
+  }).addTo(map);
+
+  // Bus marker (starting from the first point)
+  const busIcon = L.icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/61/61449.png',
+    iconSize: [32, 32],
+    iconAnchor: [16, 16]
+  });
+
+  const bus = L.marker(households[0], { icon: busIcon }).addTo(map);
+
+  // Animate the bus
+  let i = 0;
+  function moveBus() {
+    if (i < households.length - 1) {
+      const start = households[i];
+      const end = households[i + 1];
+      const steps = 100;
+      let step = 0;
+
+      const dx = (end[0] - start[0]) / steps;
+      const dy = (end[1] - start[1]) / steps;
+
+      const interval = setInterval(() => {
+        const lat = start[0] + dx * step;
+        const lng = start[1] + dy * step;
+        bus.setLatLng([lat, lng]);
+        step++;
+        if (step > steps) {
+          clearInterval(interval);
+          i++;
+          moveBus();
+        }
+      }, 30);
+    }
+  }
+
+  moveBus();
+
+  // Notification Simulation
+  function sendNotification() {
+    alert("✅ Notification sent to all household members in the cluster!");
+  }
+
+  // Dynamically determine bus size (simple demo)
+  const totalWaste = 3.8; // tons for example
+  const busInfo = document.getElementById('bus-info');
+
+  if (totalWaste < 2) {
+    busInfo.textContent = "🚌 Allocated Bus Size: Small (2 Tons)";
+  } else if (totalWaste < 5) {
+    busInfo.textContent = "🚌 Allocated Bus Size: Medium (5 Tons)";
+  } else {
+    busInfo.textContent = "🚌 Allocated Bus Size: Large (10 Tons)";
+  }
+</script>
+{% endblock js %}
+

@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Illegal Dumping{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="text-center mb-4">Illegal Dumping Reports</h2>
+
+  <!-- Flash messages -->
+  {% if messages %}
+    {% for m in messages %}
+      <div class="alert alert-{{ m.tags }} alert-dismissible fade show">
+        {{ m }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- Filter Buttons -->
+  <div class="text-center mb-4">
+    <button class="btn btn-outline-primary btn-sm me-2 filter-btn active" data-filter="all">All</button>
+    <button class="btn btn-outline-warning btn-sm me-2 filter-btn" data-filter="pending">Pending</button>
+    <button class="btn btn-outline-info btn-sm me-2 filter-btn" data-filter="processing">Under Processing</button>
+    <button class="btn btn-outline-success btn-sm me-2 filter-btn" data-filter="validated">Validated</button>
+    <button class="btn btn-outline-danger btn-sm filter-btn" data-filter="invalid">Invalid</button>
+  </div>
+
+  <div class="row">
+    {% for report in reports %}
+      <div class="col-md-4 mb-4 report-card" data-status="{{ report.status }}">
+        <div class="card shadow-sm h-100">
+          <img src="{{ report.picture.url }}" class="card-img-top"
+               style="height:250px; object-fit:cover;" alt="Dumping Image">
+
+          <div class="card-body">
+            <h5 class="card-title">{{ report.Area }}</h5>
+            <p>{{ report.description }}</p>
+            <p><strong>Status:</strong> {{ report.get_status_display }}</p>
+            <p><strong>Reported on:</strong> {{ report.report_time|date:"M d, Y H:i" }}</p>
+            <p><strong>Evidence:</strong> {{ report.likes.count }}</p>
+
+           
+              <form action="{% url 'update_dumping_status' report.pk %}"
+                    method="post" class="input-group mt-2">
+                {% csrf_token %}
+                <select name="status" class="form-select form-select-sm">
+                  {% for value, label in report.STATUS_CHOICES %}
+                    <option value="{{ value }}"
+                      {% if report.status == value %}selected{% endif %}>
+                      {{ label }}
+                    </option>
+                  {% endfor %}
+                </select>
+                <button class="btn btn-sm btn-primary">Update</button>
+              </form>
+         
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <p class="text-center">No reports found.</p>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- JavaScript Filtering -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const filterButtons = document.querySelectorAll(".filter-btn");
+    const reportCards = document.querySelectorAll(".report-card");
+
+    filterButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const selectedStatus = btn.getAttribute("data-filter");
+
+        // Filter cards
+        reportCards.forEach((card) => {
+          const cardStatus = card.getAttribute("data-status");
+          if (selectedStatus === "all" || cardStatus === selectedStatus) {
+            card.style.display = "block";
+          } else {
+            card.style.display = "none";
+          }
+        });
+
+        // Highlight active button
+        filterButtons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+      });
+    });
+  });
+</script>
+{% endblock %}

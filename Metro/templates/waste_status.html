@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Waste Status
+{% endblock title %}
+
+{% block css %}
+<style>
+  #map {
+    height: 500px;
+    width: 100%;
+  }
+</style>
+{% endblock css %}
+
+{% block content %}
+<div class="p-4 flex gap-4 flex-wrap bg-gray-50 rounded shadow">
+  <button onclick="filterMarkers('degradable')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">Degradable</button>
+  <button onclick="filterMarkers('recyclable')" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded">Recyclable</button>
+  <button onclick="filterMarkers('nonDegradable')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">Non-Degradable</button>
+  <button onclick="filterMarkers('all')" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Show All</button>
+</div>
+
+<div id="map" class="rounded shadow-md border mt-4"></div>
+{% endblock content %}
+
+{% block js %}
+<script>
+  let map;
+  const allMarkers = [];
+  const wasteReports = {{ waste_reports_json|safe }};
+  const coordCounts = {};
+
+  const icons = {
+    degradable: "http://maps.google.com/mapfiles/ms/icons/green-dot.png",
+    recyclable: "http://maps.google.com/mapfiles/ms/icons/orange-dot.png",
+    nonDegradable: "http://maps.google.com/mapfiles/ms/icons/red-dot.png"
+  };
+
+  function initMap() {
+    map = new google.maps.Map(document.getElementById("map"), {
+      center: { lat: 27.7172, lng: 85.3240 },
+      zoom: 13
+    });
+
+    showMarkers('all');
+  }
+
+  function showMarkers(typeFilter) {
+    // Clear all markers
+    allMarkers.forEach(m => m.setMap(null));
+    allMarkers.length = 0;
+
+    wasteReports.forEach(report => {
+      if (typeFilter === 'all' || report.type === typeFilter) {
+        const key = `${report.lat},${report.lng}`;
+        if (!coordCounts[key]) {
+          coordCounts[key] = 0;
+        } else {
+          coordCounts[key]++;
+        }
+
+        const offsetFactor = 0.00005;
+        const latOffset = (coordCounts[key] % 3 - 1) * offsetFactor;
+        const lngOffset = (Math.floor(coordCounts[key] / 3) - 1) * offsetFactor;
+        const lat = report.lat + latOffset;
+        const lng = report.lng + lngOffset;
+
+        const marker = new google.maps.Marker({
+          position: { lat: lat, lng: lng },
+          map: map,
+          icon: icons[report.type],
+          title: report.desc
+        });
+
+        const popupContent = `<strong>Type:</strong> ${report.type.replace(/([A-Z])/g, ' $1')}<br>
+                              <strong>Item:</strong> ${report.desc}<br>
+                              <strong>Qty:</strong> ${report.quantity}<br>
+                              <strong>Note:</strong> ${report.description}`;
+
+        const infowindow = new google.maps.InfoWindow({ content: popupContent });
+
+        marker.addListener("click", () => {
+          infowindow.open(map, marker);
+        });
+
+        allMarkers.push(marker);
+      }
+    });
+  }
+
+  function filterMarkers(type) {
+    showMarkers(type);
+  }
+</script>
+
+<!-- Load Google Maps JS with your API key -->
+<script async defer
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAw45RNLqsGBiiZTVpsg88p8rSc6lZMRkA&callback=initMap">
+</script>
+{% endblock js %}

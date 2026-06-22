@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block css %}
+<style>
+   
+
+  section {
+    max-width: 1000px;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+
+  h2 {
+    font-size: 22px;
+    font-weight: bold;
+    color: #1f2937;
+    margin-bottom: 20px;
+  }
+
+  canvas {
+    background-color: #f9fafb;
+    border-radius: 8px;
+    padding: 10px;
+  }
+</style>
+{% endblock css %}
+ {% block content %}
+<section>
+  <h2>💰 Yearly Cost & Earnings from Waste Management</h2>
+  <canvas id="costChart" width="100%" height="60"></canvas>
+</section>
+{% endblock content %}
+
+{% block js %}
+<script>
+  const ctx = document.getElementById('costChart').getContext('2d');
+
+  const years = ['2021', '2022', '2023', '2024'];
+
+  // Example data (can be dynamic)
+  const hazardousCost = [5000, 6000, 7000, 7500];
+  const organicCost = [3000, 3200, 3500, 3600];
+  const recyclableCost = [1500, 1700, 2000, 2100];
+
+  const earnings = [2000, 2500, 3000, 3200];
+
+  const net = earnings.map((e, i) => e - (hazardousCost[i] + organicCost[i] + recyclableCost[i]));
+
+  const costChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: years,
+      datasets: [
+        {
+          label: 'Hazardous Disposal Cost ($)',
+          data: hazardousCost,
+          backgroundColor: 'rgba(255, 99, 132, 0.7)'
+        },
+        {
+          label: 'Organic Disposal Cost ($)',
+          data: organicCost,
+          backgroundColor: 'rgba(75, 192, 192, 0.7)'
+        },
+        {
+          label: 'Recyclable Disposal Cost ($)',
+          data: recyclableCost,
+          backgroundColor: 'rgba(255, 206, 86, 0.7)'
+        },
+        {
+          label: 'Earnings ($)',
+          data: earnings,
+          backgroundColor: 'rgba(54, 162, 235, 0.8)'
+        },
+        {
+          label: 'Net Profit/Loss ($)',
+          data: net,
+          type: 'line',
+          borderColor: 'black',
+          borderWidth: 2,
+          fill: false,
+          tension: 0.3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        title: {
+          display: true,
+          text: 'Yearly Waste Management Cost & Revenue Analysis'
+        },
+        tooltip: {
+          mode: 'index',
+          intersect: false
+        }
+      },
+      scales: {
+        x: {
+          stacked: true
+        },
+        y: {
+          beginAtZero: true,
+          stacked: true,
+          title: {
+            display: true,
+            text: 'Amount in USD ($)'
+          }
+        }
+      }
+    }
+  });
+</script>
+  
+{% endblock js %}
+
+
+
+</body>
+</html>
