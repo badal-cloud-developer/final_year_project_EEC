@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login - FO_MOHOR</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      height: 100vh;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .form-container {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.2);
+      width: 400px;
+      text-align: center;
+    }
+
+    .title {
+      font-size: 28px;
+      font-weight: bold;
+      color: #28a745;
+      margin-bottom: 10px;
+      letter-spacing: 2px;
+    }
+
+    .subtitle {
+      font-size: 18px;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .user-buttons button {
+      margin: 5px 0;
+      padding: 10px 20px;
+      cursor: pointer;
+      background-color: #007bff;
+      border: none;
+      color: white;
+      border-radius: 5px;
+      width: 100%;
+      font-size: 16px;
+    }
+
+    .user-buttons button:hover {
+      background-color: #0056b3;
+    }
+
+    form {
+      margin-top: 20px;
+      display: none;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 15px;
+    }
+
+    button[type="submit"] {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 10px;
+      width: 100%;
+      cursor: pointer;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    button[type="submit"]:hover {
+      background-color: #218838;
+    }
+
+    .switch-account {
+      margin-top: 10px;
+      color: #007bff;
+      cursor: pointer;
+      text-decoration: underline;
+      font-size: 14px;
+    }
+
+    .switch-account:hover {
+      color: #0056b3;
+    }
+
+    a {
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .error {
+      color: red;
+      font-size: 1rem;
+      margin-top: 10px;
+    }
+    
+    .success {
+      color: green;
+      font-size: 1rem;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <div class="title">FO_MOHOR</div>
+    <div class="subtitle">Select Your Role</div>
+
+    <div class="user-buttons" id="userTypeButtons">
+      <button onclick="showLoginForm('Household')">Waste Generators</button>
+      <button onclick="showLoginForm('Metro')">Metro</button>
+      <button onclick="showLoginForm('Organization')">Waste Receiver</button>
+      <button onclick="showLoginForm('Driver')">Driver</button>
+    </div>
+
+    <form id="loginForm" method="post" action="{% url 'login' %}">
+      {% csrf_token %}
+      <h3 id="loginTitle">Login</h3>
+      <input type="text" id="username" placeholder="Username" name="username" required>
+      <input type="password" placeholder="Password" name="password" required>
+      <button type="submit">Login</button>
+      <p class="switch-account" onclick="resetForm()">← Choose another role</p>
+    </form>
+
+    <p style="text-align:center; margin-top: 10px;">
+      Don't have an account? <a href="{% url 'signup' %}">Signup here</a>
+    </p>
+
+    <!-- Django Messages -->
+    {% if messages %}
+      <div class="messages">
+        {% for message in messages %}
+          <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+
+  <script>
+    function showLoginForm(userType) {
+      document.getElementById("userTypeButtons").style.display = "none";
+      document.getElementById("loginForm").style.display = "block";
+      document.getElementById("loginTitle").innerText = `${userType} Login`;
+      document.getElementById("username").placeholder = `Enter ${userType} Username`;
+
+      // Hide the "Select Your Role" subtitle
+      document.querySelector(".subtitle").style.display = "none";
+    }
+
+    function resetForm() {
+      document.getElementById("loginForm").reset();
+      document.getElementById("loginForm").style.display = "none";
+      document.getElementById("userTypeButtons").style.display = "block";
+      document.querySelector(".subtitle").style.display = "block";
+    }
+  </script>
+</body>
+</html>

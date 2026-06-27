@@ -1,0 +1,105 @@
+{% extends "household_base.html" %}
+{% load static %}
+
+{% block title %}
+  Notifications
+{% endblock title %}
+
+{% block content %}
+<style>
+
+  .qr-animated {
+    animation: zoomIn 1s ease-out forwards;
+    opacity: 0;
+  }
+
+  @keyframes zoomIn {
+    0% {
+      transform: scale(0.5);
+      opacity: 0;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  /* Bounce Text */
+  .bounce-text {
+    animation: bounce 1.8s infinite;
+    color: #28a745;
+    font-weight: 600;
+  }
+
+  @keyframes bounce {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+</style>
+
+<div class="container mt-4">
+
+  <!-- Notification Card -->
+  <div class="card">
+
+    <!-- Card Header with Animated QR and Text -->
+    <div class="card-header text-white d-flex justify-content-between align-items-center flex-wrap py-4">
+      <h2 class="mb-3 mb-md-0">Notifications</h2>
+      
+      <div class="text-center">
+        <img src="{% static 'whatsapp_qr.png' %}" 
+             alt="QR Code" 
+             class="qr-animated"
+             style="width: 160px; height: 160px; border: 2px solid white; border-radius: 10px;">
+        <p class="mt-2 mb-0 bounce-text">
+          📲 Scan to join the WhatsApp community <br> and stay connected!
+        </p>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <div class="list-group">
+
+        {# Waste Report Notifications #}
+        {% for report in waste_reports %}
+        <div class="list-group-item list-group-item-action mb-2">
+          <div class="d-flex flex-column flex-md-row justify-content-between">
+            <h5 class="mb-1">Waste Report - {{ report.waste_type|title }}</h5>
+            <small class="text-muted">{{ report.report_time }}</small>
+          </div>
+          <p class="mb-1 mt-2">
+            Your report with ID <strong>#{{ report.id }}</strong> is currently 
+            <strong>{{ report.status|title }}</strong>.
+            
+          </p>
+        </div>
+        {% empty %}
+        <p class="text-muted">You have not reported anything yet.</p>
+        {% endfor %}
+
+        {# Illegal Dumping Notifications #}
+        {% for dump in illegal_dumps %}
+        <div class="list-group-item list-group-item-action mb-2">
+          <div class="d-flex flex-column flex-md-row justify-content-between">
+            <h5 class="mb-1">Illegal Dumping Report</h5>
+            <small class="text-muted">{{ dump.report_time }}</small>
+          </div>
+          <p class="mb-1 mt-2">
+            Reported in <strong>{{ dump.Area }}</strong>. Status: 
+            <strong>{{ dump.status|title }}</strong>.
+            
+          </p>
+        </div>
+        {% empty %}
+        <p class="text-muted">You have not reported any illegal dumping yet.</p>
+        {% endfor %}
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

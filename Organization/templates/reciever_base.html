@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Receiver|{% endblock title %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+
+  <style>
+    #map {
+      height: 70vh;
+      position: relative;
+      z-index: 0;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .leaflet-routing-container {
+      z-index: 10 !important;
+    }
+
+    .profile-img {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 5px solid #007bff;
+    }
+  </style>
+
+  {% block extra_head %}{% endblock %}
+
+  <!-- Load Google Maps JavaScript API (without callback param) -->
+  <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAw45RNLqsGBiiZTVpsg88p8rSc6lZMRkA">
+  </script>
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-green-700 text-white p-4 flex justify-between items-center">
+    <h1 class="text-xl md:text-2xl font-bold">Waste Receiver Dashboard</h1>
+
+    <div class="flex items-center space-x-4">
+      <a href="{% url 'logout' %}"
+        class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded">
+        Logout
+      </a>
+
+      <!-- Hamburger Menu -->
+      <button id="menu-toggle" class="md:hidden focus:outline-none">
+        <svg class="w-6 h-6 fill-current" xmlns="http://www.w3.org/2000/svg" fill="none"
+          viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="flex flex-col md:flex-row min-h-screen">
+    <!-- Sidebar -->
+    <aside id="sidebar"
+      class="hidden md:block w-full md:w-64 bg-white border-r shadow-md p-4 space-y-4 transition-all duration-300 ease-in-out fixed md:relative z-50 top-16 md:top-0 md:translate-x-0 md:static">
+
+      <a href="{% url 'requests' %}"
+        class="block text-center bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 mb-2">Requests</a>
+      <a href="{% url 'accepted_requests' %}"
+        class="block text-center bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 mb-2">Accepted Requests</a>
+      <a href="{% url 'route' %}"
+        class="block text-center bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 mb-2">View Route</a>
+      <a href="{% url 'receiver_profile' %}"
+        class="block text-center bg-purple-500 text-white py-2 px-4 rounded hover:bg-purple-600">Profile</a>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-4 mt-20 md:mt-4">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+
+  <!-- Sidebar & Geolocation Script -->
+  <script>
+    // Try to get accurate location from browser GPS first, then fallback to Google Geolocation API
+   function getAccurateLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        sendLocationToServer(lat, lon);
+      },
+      (error) => {
+        console.warn("Browser Geolocation failed, fallback to Google API:", error);
+        window.getLocationFromGoogleAPI();
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+  } else {
+    console.warn("Geolocation not supported, fallback to Google API");
+    window.getLocationFromGoogleAPI();
+  }
+}
+
+
+    // Make this function global so it can be called anywhere
+    window.getLocationFromGoogleAPI = function () {
+      fetch("https://www.googleapis.com/geolocation/v1/geolocate?key=AIzaSyAw45RNLqsGBiiZTVpsg88p8rSc6lZMRkA", {
+        method: "POST"
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          const lat = data.location.lat;
+          const lon = data.location.lng;
+          sendLocationToServer(lat, lon);
+        })
+        .catch((error) => {
+          console.error("Google Geolocation API error:", error);
+        });
+    };
+
+    function sendLocationToServer(lat, lon) {
+      console.log("Sending location to backend:", lat, lon);
+      fetch("/organization/get-location/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCookie("csrftoken"),
+        },
+        body: JSON.stringify({ latitude: lat, longitude: lon }),
+      })
+        .then((res) => res.json())
+        .then((result) => console.log("Server response:", result))
+        .catch((err) => console.error("Error sending to server:", err));
+    }
+
+    // CSRF helper to get csrftoken cookie
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+        for (let cookie of cookies) {
+          cookie = cookie.trim();
+          if (cookie.startsWith(name + "=")) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    // Call location function on window load
+    window.onload = getAccurateLocation;
+  </script>
+
+  {% block extra_scripts %}{% endblock %}
+</body>
+
+</html>

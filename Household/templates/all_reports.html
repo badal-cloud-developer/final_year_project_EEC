@@ -1,0 +1,42 @@
+{% extends 'household_base.html' %}
+{% block title %}
+  Reports
+{% endblock title %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center mb-4">Illegal Dumping Reports</h2>
+    <div class="row">
+        {% for report in reports %}
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <img src="{{ report.picture.url }}" class="card-img-top" style="height:250px; object-fit:cover;" alt="Dumping Image">
+                <div class="card-body">
+                    <h5 class="card-title">{{ report.Area }}</h5>
+                    <p>{{ report.description }}</p>
+                    <p><strong>Status:</strong> {{ report.status }}</p>
+                    <p><strong>Reported on:</strong> {{ report.report_time|date:"M d, Y H:i" }}</p>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Evidence:</strong> {{ report.likes.count }}
+                        </div>
+                        {% if user.is_authenticated %}
+                        <form method="POST" action="{% url 'like_report' report.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn {% if report.id in liked_ids %}btn-danger{% else %}btn-outline-danger{% endif %}">
+                                ❤️ {% if report.id in liked_ids %}I have evidence{% else %}Have an evidence?{% endif %}
+                            </button>
+                        </form>
+                        {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-outline-primary">Login to Like</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-center">No reports found.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

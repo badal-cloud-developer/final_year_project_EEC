@@ -1,0 +1,75 @@
+{% extends "household_base.html" %}
+{% load static %}
+
+{% block title %}
+  Illegal report
+{% endblock title %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="card">
+    <div class="card-header">
+      <h2>Report Illegal Dumping</h2>
+    </div>
+     {% if messages %}
+  <div class="container mt-3">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+    <div class="card-body">
+      <form method="POST" action="{% url 'illegal_report' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="mb-3">
+          <label for="dumpDesc" class="form-label">Description</label>
+          <textarea class="form-control" id="dumpDesc" name="description" rows="3" required></textarea>
+        </div>
+        
+        <div class="mb-3">
+          <label for="dumpArea" class="form-label">Area</label>
+          <input type="text" class="form-control" id="dumpArea" name="area" required>
+        </div>
+        
+        <div class="mb-3">
+          <label for="dumpPhoto" class="form-label">Upload Photo</label>
+          <input type="file" class="form-control" id="dumpPhoto" name="photo" accept="image/*" >
+          <div class="mt-2" id="dumpPreview"></div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Upload Report</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+
+{% endblock content %}
+{% block js %}
+<script>
+  document.getElementById('dumpPhoto').addEventListener('change', function () {
+    const preview = document.getElementById('dumpPreview');
+    preview.innerHTML = ''; // Clear previous previews
+
+    const files = Array.from(this.files);
+
+    files.forEach(file => {
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(file);
+      img.style.maxWidth = '200px';
+      img.style.maxHeight = '200px';
+      img.style.marginRight = '10px';
+      img.style.border = '1px solid #ccc';
+      img.style.borderRadius = '5px';
+
+      preview.appendChild(img);
+    });
+  });
+</script>
+
+{% endblock js %}

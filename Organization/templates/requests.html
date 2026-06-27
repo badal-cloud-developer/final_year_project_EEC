@@ -1,0 +1,50 @@
+{% extends 'reciever_base.html' %}
+{% block title %}Requests{% endblock title %}
+
+{% block content %}
+<h2 class="text-2xl font-bold mb-6 text-center text-green-700">🗑️ Incoming Waste Pickup Requests</h2>
+
+<div class="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+  {% for report in reports %}
+  <div class="bg-white rounded-2xl shadow-lg p-5 border border-gray-200 relative hover:shadow-xl transition"
+       data-lat="{{ report.lat }}" data-lng="{{ report.lng }}">
+
+    <div class="flex justify-between items-center mb-3">
+      <div>
+        <p class="text-sm text-gray-500">#{{ report.id }}</p>
+        <h3 class="text-lg font-semibold text-green-700">{{ report.get_waste_type_display }}</h3>
+      </div>
+      <div class="text-sm px-2 py-1 bg-green-100 text-green-800 rounded-md">🔴 {{report.status}}</div>
+    </div>
+
+    <div class="mb-3">
+      <p class="font-semibold text-gray-700 mb-1">📦 Items:</p>
+      <ul class="list-disc ml-6 text-sm text-gray-600">
+        {% for item in report.items %}
+        <li>{{ item.item }} – {{ item.quantity }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <p class="text-sm text-gray-600 mb-1"><strong>📝 Description:</strong> {{ report.description }}</p>
+    <p class="text-sm text-gray-600 mb-1"><strong>📍 Address:</strong> {{ report.area }}</p>
+    <p class="text-sm text-gray-600 mb-3"><strong>📏 Distance:</strong> {{ report.distance }} km</p>
+    <p class="text-sm text-gray-600 mb-3"><strong>⏱️ ETA:</strong> {{ report.eta_minutes }} minutes</p>
+
+
+    <div class="flex justify-end">
+      <a
+        href="{% url 'accept_request' report.id %}"
+        class="accept-btn bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-md transition"
+      >
+        🚚 Accept Request
+      </a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="mt-10 text-center">
+</div>
+{% endblock content %}
+

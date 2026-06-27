@@ -1,0 +1,144 @@
+{% extends "household_base.html" %}
+{% block title %}
+  Map view
+{% endblock title %}
+
+{% block content %}
+<form method="post" action="{% url 'waste_report' %}">
+  {% csrf_token %}
+  <div id="report" class="section active">
+    <h2>Report Waste</h2>
+
+    {% if messages %}
+    <div class="container mt-3">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Waste Type -->
+    <div class="form-group">
+      <label for="wasteType">Waste Type</label>
+      <select id="wasteType" name="waste_type" onchange="showSubTypes()">
+        <option value="">-- Select Waste Type --</option>
+        <option value="organic">Organic</option>
+        <option value="nonorganic">Non-Organic</option>
+        <option value="ewaste">E-Waste</option>
+      </select>
+    </div>
+
+    <!-- Dynamic Subtypes go here -->
+    <div id="subTypes"></div>
+
+    <!-- Description -->
+    <div class="form-group">
+      <label for="description">Description</label>
+      <textarea id="description" name="description" placeholder="Write short description..."></textarea>
+    </div>
+
+    <!-- Location -->
+    <div class="form-group">
+      <label for="locationInput">Location</label>
+      <input type="text" id="locationInput" name="location" class="form-control" readonly>
+      <button type="button" id="locationBtn" onclick="getUserLocation()">Enable Location</button>
+    </div>
+
+    <!-- Hidden Status (default pending) -->
+    <input type="hidden" name="status" value="pending">
+
+    <!-- Submit -->
+    <button type="submit" id="reportBtn" disabled>Submit Report</button>
+    <div class="notification" id="vehicleNotif">Vehicle will arrive between 2 PM - 4 PM</div>
+  </div>
+</form>
+{% endblock content %}
+
+{% block js %}
+<script>
+  // Location functionality
+  function getUserLocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        function(position) {
+          const lat = position.coords.latitude.toFixed(6);
+          const lng = position.coords.longitude.toFixed(6);
+          document.getElementById('locationInput').value = `${lat},${lng}`;
+          document.getElementById('reportBtn').disabled = false;
+        },
+        function(error) {
+          console.error('Geolocation error:', error);
+          alert('Unable to retrieve your location. Please enable location services.');
+        }
+      );
+    } else {
+      alert('Geolocation not supported.');
+    }
+  }
+
+  // Show subtypes dynamically
+  function showSubTypes() {
+    const type = document.getElementById('wasteType').value;
+    let html = '';
+
+    const buildItems = (items, unit) => {
+      return items.map((item, i) => `
+        <div class="waste-item">
+          <label>
+            <input
+              type="checkbox"
+              name="items[]"
+              value="${item}"
+              onchange="onlyOneCheckbox(this, ${i})"
+            > ${item}
+          </label>
+          <input
+            type="number"
+            name="quantities[]"
+            placeholder="Quantity${unit ? ' ('+unit+')' : ''}"
+            disabled
+            class="qty-input"
+            data-index="${i}"
+          >
+        </div>
+      `).join('');
+    };
+
+    if (type === 'organic') {
+      html = buildItems([
+        'Pig Feed Waste (fruit & veggie scraps, stale bread, eggshells)',
+        'Compostable Waste (tea leaves, coffee grounds, garden trimmings)'
+      ], 'kg');
+    }
+    else if (type === 'nonorganic') {
+      html = buildItems(['Plastic Bottle','Glass Bottle','Metal Scrap','Copy Books'], 'kg');
+    }
+    else if (type === 'ewaste') {
+      html = buildItems(['Small (phones)','Medium (printers)','Large (TVs)'], null);
+    }
+
+    document.getElementById('subTypes').innerHTML = html;
+  }
+
+  // Only one checkbox allowed at a time
+  function onlyOneCheckbox(checkbox, idx) {
+    const checkboxes = document.querySelectorAll('input[type="checkbox"][name="items[]"]');
+    const qtyInputs = document.querySelectorAll('.qty-input');
+
+    checkboxes.forEach((cb, i) => {
+      if (cb !== checkbox) {
+        cb.checked = false;
+        qtyInputs[i].disabled = true;
+        qtyInputs[i].value = '';
+      }
+    });
+
+    // Toggle selected checkbox’s quantity input
+    qtyInputs[idx].disabled = !checkbox.checked;
+    if (!checkbox.checked) qtyInputs[idx].value = '';
+  }
+</script>
+{% endblock js %}

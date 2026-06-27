@@ -1,0 +1,220 @@
+{% extends "household_base.html" %}
+{% load static %}
+{% block title %}
+  profile
+{% endblock title %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row g-4">
+    <!-- Profile and Wallet -->
+    <div class="col-md-4">
+      <div class="profile-card text-center">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          {% if user.userprofile.profile_photo %}
+            <img src="{{ user.userprofile.profile_photo.url }}" class="profile-img mb-3" alt="User Image" style="width:150px; height:150px; border-radius:50%; object-fit: cover;">
+          {% else %}
+            <img src="{% static 'default.png' %}" class="profile-img mb-3" alt="Default Image" style="width:150px; height:150px; border-radius:50%; object-fit: cover;">
+          {% endif %}
+
+          <!-- Custom file input -->
+          <div class="input-group mb-3">
+            <div class="custom-file">
+              <input type="file" class="custom-file-input" id="profilePhoto" name="profile_photo" accept="image/*">
+              <label class="custom-file-label" for="profilePhoto">
+                {% if user.userprofile.profile_photo %}
+                  Change Photo
+                {% else %}
+                  Choose Photo
+                {% endif %}
+              </label>
+            </div>
+          </div>
+          {% if form.profile_photo.errors %}
+            <div class="text-danger small">
+              {{ form.profile_photo.errors }}
+            </div>
+          {% endif %}
+
+          <button type="submit" class="btn btn-sm btn-outline-primary mt-2">Update Photo</button>
+        </form>
+        <div class="profile-display">
+  <!-- User's Full Name -->
+  <h3 class="text-primary">{{request.user }}</h3>
+  
+  <!-- Household Information -->
+  <div class="household-info">
+    <p class="mb-1">
+      <span class="text-secondary fw-medium">Household:</span>
+      <span class="text-dark fw-normal">{{ request.user.household.name }}</span>
+    </p>
+    <p class="mb-1">
+      <span class="text-secondary fw-medium">Municipality:</span>
+      <span class="text-dark fw-normal">{{ request.user.household.municipal }}</span>
+    </p>
+    <p class="mb-1">
+      <span class="text-secondary fw-medium">Ward:</span>
+      <span class="text-dark fw-normal">{{ request.user.household.ward_no }}</span>
+    </p>
+  </div>
+</div>
+        
+        <p class="text-muted mb-3">Active User</p>
+        <div class="wallet-box mt-3">
+          <p class="mb-1">Points</p>
+          <div id="userPoints" class="animated-number">0</div>
+          <hr class="bg-light">
+          <p class="mb-1">Category</p>
+          <div id="userCategory">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rest of your template remains the same -->
+    <!-- Report Status and History -->
+    <div class="col-md-8">
+      <div class="profile-card mb-4">
+        <h5 class="mb-3">Current Report Status</h5>
+        <div class="alert alert-success" role="alert">
+          Your last report has been reviewed and approved.
+        </div>
+      </div>
+
+      <!-- General Waste Reports -->
+      <div class="profile-card mb-4">
+        <h5 class="mb-3">Recent General Waste Reports</h5>
+        <div class="table-responsive">
+          <table class="table table-striped report-table">
+            <thead class="table-dark">
+              <tr>
+                <th>#</th>
+                <th>Date</th>
+                <th>Waste Type </th>
+                <th>Status</th>
+                <th>Remarks</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for report in waste_reports %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ report.report_time|date:"Y-m-d" }}</td>
+                <td>{{ report.waste_type }}</td>
+                <td>
+                  {% if report.status == 'accepted' %}
+                    <span class="badge bg-warning">{{ report.status }}</span>
+                  {% elif report.status == 'pending' %}
+                    <span class="badge bg-danger text-dark">{{ report.status }}</span>
+                  {% elif report.status == 'Rejected' %}
+                    <span class="badge bg-danger">{{ report.status }}</span>
+                  {% else %}
+                    <span class="badge bg-secondary">{{ report.status }}</span>
+                  {% endif %}
+                </td>
+                <td>{{ report.description|default:"No remarks" }}</td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="4" class="text-center">No general waste reports available.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Illegal Dump Reports -->
+      <div class="profile-card">
+        <h5 class="mb-3">Recent Illegal Dump Reports</h5>
+        <div class="table-responsive">
+          <table class="table table-striped report-table">
+            <thead class="table-light">
+              <tr>
+                <th>#</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Remarks</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for dump in illegal_dumps %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ dump.report_time|date:"Y-m-d" }}</td>
+                <td>
+                  {% if dump.status == 'accepted' %}
+                    <span class="badge bg-warnign">{{ dump.status }}</span>
+                  {% elif dump.status == 'pending' %}
+                    <span class="badge bg-danger text-dark">{{ dump.status }}</span>
+                  {% elif dump.status == 'Rejected' %}
+                    <span class="badge bg-danger">{{ dump.status }}</span>
+                  {% else %}
+                    <span class="badge bg-secondary">{{ dump.status }}</span>
+                  {% endif %}
+                </td>
+                <td>{{ dump.description|default:"No remarks" }}</td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="4" class="text-center">No illegal dump reports available.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+{% block js %}
+<script>
+  const totalPoints = Number('{{ points|default:0|floatformat:"0" }}');
+  const userPointsEl = document.getElementById("userPoints");
+  const userCategoryEl = document.getElementById("userCategory");
+
+  // Determine category
+  function getCategory(points) {
+    if (points >= 5000) return "Diamond";
+    if (points >= 3000) return "Gold";
+    if (points >= 1000) return "Silver";
+    return "Bronze";
+  }
+
+  // Animate points count-up
+  let start = 0;
+  const duration = 1000;
+  const increment = totalPoints / (duration / 10);
+  const counter = setInterval(() => {
+    start += increment;
+    if (start >= totalPoints) {
+      userPointsEl.textContent = totalPoints;
+      clearInterval(counter);
+    } else {
+      userPointsEl.textContent = Math.floor(start);
+    }
+  }, 10);
+
+  // Set user category
+  userCategoryEl.textContent = getCategory(totalPoints);
+
+  // Show file name when file is selected
+  document.querySelector('.custom-file-input').addEventListener('change', function(e) {
+    var fileName = e.target.files[0]?.name || "Choose file";
+    var nextSibling = e.target.nextElementSibling;
+    nextSibling.innerText = fileName;
+  });
+</script>
+
+<style>
+  .custom-file-input ~ .custom-file-label::after {
+    content: "Browse";
+  }
+  .profile-img {
+    object-fit: cover;
+  }
+</style>
+{% endblock js %}
